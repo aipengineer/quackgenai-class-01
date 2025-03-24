@@ -17,8 +17,9 @@ from quacktool.config import get_tool_config
 from quacktool.models import (
     AssetConfig,
     AssetType,
-    ProcessingResult,
+    ProcessingResult, ProcessingMode,
 )
+from quacktool.llm_metadata import generate_llm_metadata
 
 logger = logging.getLogger(__name__)
 
@@ -185,9 +186,6 @@ def _detect_by_extension(file_path: Path) -> AssetType:
 
     return AssetType.OTHER
 
-
-# src/quacktool/core.py - Update _generate_output_path for PathsConfig compatibility
-
 def _generate_output_path(input_path: Path, file_format: str | None = None) -> Path:
     """
     Generate an output path based on the input path and optional format.
@@ -333,6 +331,8 @@ def _process_audio(asset_config: AssetConfig, output_path: Path) -> ProcessingRe
     return result
 
 
+
+
 def _process_document(asset_config: AssetConfig, output_path: Path) -> ProcessingResult:
     """
     Process a document asset.
@@ -346,14 +346,35 @@ def _process_document(asset_config: AssetConfig, output_path: Path) -> Processin
     """
     logger.info(f"Processing document {asset_config.input_path} to {output_path}")
 
-    # For this skeleton implementation, simply copy the file
-    # In a real implementation, you might use a library
-    # like pandoc to process the document
     start_time = time.time()
-    result = _copy_file(asset_config.input_path, output_path)
-    # Ensure duration is always set
-    result.duration_ms = max(1, int((time.time() - start_time) * 1000))
-    return result
+
+    try:
+        if asset_config.options.mode == ProcessingMode.GENERATE:
+            # LLM-based metadata generation
+            metadata = generate_llm_metadata(asset_config)
+
+            return ProcessingResult(
+                success=True,
+                output_path=asset_config.input_path,
+                metrics={
+                    "llm_metadata": metadata
+                },
+                duration_ms=max(1, int((time.time() - start_time) * 1000)),
+            )
+
+        # Fallback for other modes: copy file
+        result = _copy_file(asset_config.input_path, output_path)
+        result.duration_ms = max(1, int((time.time() - start_time) * 1000))
+        return result
+
+    except Exception as e:
+        logger.exception(f"Error processing document: {str(e)}")
+        return ProcessingResult(
+            success=False,
+            error=f"Document processing error: {str(e)}",
+            duration_ms=max(1, int((time.time() - start_time) * 1000)),
+        )
+
 
 
 def _copy_file(input_path: Path, output_path: Path) -> ProcessingResult:
