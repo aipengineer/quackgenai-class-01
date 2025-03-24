@@ -1,4 +1,4 @@
-# QuackTool 🦆
+# QuackGenAI 🦆
 
 A QuackVerse tool for automation, built on top of QuackCore.
 
