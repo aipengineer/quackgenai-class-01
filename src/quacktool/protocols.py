@@ -1,4 +1,5 @@
 # src/quacktool/protocols.py
+from logging import Logger
 from typing import Protocol, runtime_checkable
 
 from quackcore.integrations.results import IntegrationResult

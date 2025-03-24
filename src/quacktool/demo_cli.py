@@ -19,7 +19,6 @@ from quackcore.cli import (
 )
 
 from quacktool.core import process_asset
-from quacktool.llm_metadata import generate_llm_metadata
 from quacktool.models import AssetConfig, AssetType, ProcessingMode, ProcessingOptions
 from quacktool.version import __version__, display_version_info
 
@@ -315,12 +314,33 @@ def batch_command(
     is_flag=True,
     help="Print raw JSON output instead of formatted view.",
 )
+@cli.command("metadata")
+@click.argument(
+    "input_file",
+    type=click.Path(exists=True, dir_okay=False),
+)
+@click.option(
+    "--json",
+    "json_output",
+    is_flag=True,
+    help="Print raw JSON output instead of formatted view.",
+)
+@cli.command("metadata")
+@click.argument(
+    "input_file",
+    type=click.Path(exists=True, dir_okay=False),
+)
+@click.option(
+    "--json",
+    "json_output",
+    is_flag=True,
+    help="Print raw JSON output instead of formatted view.",
+)
 @click.pass_context
-@handle_errors(exit_code=1)
 def metadata_command(
-    ctx: click.Context,
-    input_file: str,
-    json_output: bool,
+        ctx: click.Context,
+        input_file: str,
+        json_output: bool,
 ) -> None:
     """
     Generate LLM-based metadata for a text document.
@@ -332,30 +352,45 @@ def metadata_command(
 
         quacktool metadata ./docs/my_article.txt
     """
-    logger = ctx.obj["logger"]
-    input_path = Path(input_file)
+    try:
+        from quacktool.llm_metadata import generate_llm_metadata
+        from quacktool.models import AssetConfig
+        from pathlib import Path
 
-    logger.info(f"Generating LLM metadata for {input_path}...")
+        # Use the logger from the context
+        logger = ctx.obj.get("logger")
+        if logger:
+            logger.info(f"Generating LLM metadata for {input_file}")
 
-    asset_config = AssetConfig(input_path=input_path)
+        input_path = Path(input_file)
 
-    metadata = generate_llm_metadata(asset_config)
+        print_info(f"Generating LLM metadata for {input_path}...")
 
-    if "error" in metadata:
-        print_error(f"Metadata generation failed: {metadata['error']}", exit_code=1)
-        return
+        asset_config = AssetConfig(input_path=input_path)
 
-    if json_output:
-        import json
+        metadata = generate_llm_metadata(asset_config)
 
-        print(json.dumps(metadata, indent=2))
-    else:
-        print_success(f"Metadata for {input_file}")
-        print_info(f"Title: {metadata.get('title', 'N/A')}")
-        print_info(f"Summary:\n{metadata.get('summary', 'N/A')}")
-        print_info(f"Keywords: {', '.join(metadata.get('keywords', []))}")
-        print_info(f"Topics: {', '.join(metadata.get('topics', []))}")
+        if "error" in metadata:
+            print_error(f"Metadata generation failed: {metadata['error']}", exit_code=1)
+            return
 
+        if json_output:
+            import json
+            print(json.dumps(metadata, indent=2))
+        else:
+            print_success(f"Metadata for {input_file}")
+            print_info(f"Title: {metadata.get('title', 'N/A')}")
+            print_info(f"Summary:\n{metadata.get('summary', 'N/A')}")
+            print_info(f"Keywords: {', '.join(metadata.get('keywords', []))}")
+            print_info(f"Topics: {', '.join(metadata.get('topics', []))}")
+
+    except Exception as e:
+        import traceback
+        logger = ctx.obj.get("logger")
+        if logger:
+            logger.exception(f"Error in metadata_command: {e}")
+        print_error(f"Error in metadata_command: {e}", exit_code=1)
+        traceback.print_exc()
 
 @cli.command("version")
 def version_command():

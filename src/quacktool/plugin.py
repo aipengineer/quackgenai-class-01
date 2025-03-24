@@ -225,15 +225,18 @@ def _register_plugin_with_registry(
         The registered plugin instance
     """
     from quackcore.plugins import registry
+    from quackcore.errors.base import QuackPluginError
 
     # Use module-level logger instead of accessing plugin.logger
     # Only attempt to register if the plugin is not already registered
     if not registry.is_registered(plugin.name):
         try:
             registry.register(plugin)
+        except QuackPluginError as e:
+            # The plugin is already registered, which is fine
+            _LOGGER.debug(f"Plugin already registered: {e}")
         except Exception as e:
-            # Log the error but don't fail - the plugin might already be registered
-            # through another import path
+            # Log other errors but don't fail
             _LOGGER.warning(f"Plugin registration attempt failed: {e}")
 
     return plugin
@@ -263,10 +266,8 @@ def create_plugin() -> QuackToolPluginProtocol:
     # Create a new instance if we don't have one yet
     instance = QuackToolPlugin()
 
-    # Register with QuackCore
-    _register_plugin_with_registry(instance)
-
-    # Store in our module-level registry
+    # Store in our module-level registry without registering with QuackCore
+    # The registration will be handled by QuackCore's plugin discovery
     _PLUGIN_REGISTRY[plugin_key] = instance
 
     # Log for debugging purposes using module logger
