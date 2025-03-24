@@ -9,8 +9,13 @@ QuackVerse components.
 from pathlib import Path
 from unittest import mock
 
-from quacktool import AssetConfig, ProcessingOptions, get_config, get_logger, \
-    process_asset
+from quacktool import (
+    AssetConfig,
+    ProcessingOptions,
+    get_config,
+    get_logger,
+    process_asset,
+)
 from quacktool.models import ProcessingMode, ProcessingResult
 
 
@@ -22,13 +27,13 @@ class TestHeadlessAPI:
         # All these imports should work without error
         # They are defined in __all__ in __init__.py
         from quacktool import (
+            AssetConfig,
+            ProcessingOptions,
+            ProcessingResult,
             __version__,
             get_config,
             get_logger,
             process_asset,
-            AssetConfig,
-            ProcessingOptions,
-            ProcessingResult,
         )
 
         # Check they have the correct types

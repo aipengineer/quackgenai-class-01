@@ -201,9 +201,12 @@ class TestConfigManagement:
 
     @mock.patch("logging.FileHandler")
     @mock.patch("pathlib.Path.mkdir")
-    def test_initialize_logging(self, mock_mkdir: mock.MagicMock,
-                                mock_file_handler: mock.MagicMock,
-                                patch_log_handlers: None) -> None:
+    def test_initialize_logging(
+        self,
+        mock_mkdir: mock.MagicMock,
+        mock_file_handler: mock.MagicMock,
+        patch_log_handlers: None,
+    ) -> None:
         """Test initializing logging configuration."""
         # Set up mocks
         mock_file_handler.return_value = mock.MagicMock()
@@ -231,6 +234,7 @@ class TestConfigManagement:
 
         # Add it to the module-level list
         from quacktool.config import _file_handlers
+
         _file_handlers.append(mock_handler)
 
         # Call the close function

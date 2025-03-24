@@ -13,11 +13,8 @@ from typing import Any
 import openai
 from openai import OpenAIError
 
-from quacktool.models import AssetConfig
-from quacktool.config import get_logger
 from quacktool.llm_settings import setup_llm_environment
-
-logger = get_logger()
+from quacktool.models import AssetConfig
 
 # Choose model — you can switch to "gpt-4" if needed
 DEFAULT_MODEL = "gpt-3.5-turbo"
@@ -50,6 +47,8 @@ def generate_llm_metadata(asset_config: AssetConfig) -> dict[str, Any]:
     Returns:
         Dictionary with generated metadata (e.g., summary, keywords, title)
     """
+    from quacktool.config import get_logger  # ⬅️ Delayed import
+    logger = get_logger()
     input_path: Path = asset_config.input_path
 
     try:

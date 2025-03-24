@@ -3,10 +3,12 @@
 Unit tests for LLM metadata generation module.
 """
 
-import pytest
 from pathlib import Path
-from quacktool.models import AssetConfig, ProcessingOptions, ProcessingMode, AssetType
+
+import pytest
+
 from quacktool.llm_metadata import generate_llm_metadata
+from quacktool.models import AssetConfig, AssetType, ProcessingMode, ProcessingOptions
 
 
 @pytest.fixture

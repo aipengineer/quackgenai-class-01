@@ -4,6 +4,7 @@ Integration tests for QuackTool.
 
 These tests verify that QuackTool components work together correctly.
 """
+
 import logging
 import os
 from pathlib import Path
@@ -59,7 +60,7 @@ class TestQuackToolIntegration:
 
     @mock.patch("quacktool.core._copy_file")
     def test_end_to_end_workflow(
-            self, mock_copy_file: mock.MagicMock, test_file: Path
+        self, mock_copy_file: mock.MagicMock, test_file: Path
     ) -> None:
         """Test entire workflow from input to output."""
         # Set up mock for the copy operation
@@ -95,8 +96,10 @@ class TestQuackToolIntegration:
         # Verify correct parameters were passed to copy function
         mock_copy_file.assert_called_once_with(test_file, output_path)
 
-    @pytest.mark.skipif(os.environ.get("SKIP_QUACKCORE_TESTS") == "1",
-                        reason="QuackCore dependency not available")
+    @pytest.mark.skipif(
+        os.environ.get("SKIP_QUACKCORE_TESTS") == "1",
+        reason="QuackCore dependency not available",
+    )
     def test_quackcore_integration(self, test_file: Path) -> None:
         """
         Test integration with QuackCore components.
@@ -144,11 +147,12 @@ class TestCliIntegration:
 
     @mock.patch("quacktool.demo_cli.process_asset")
     def test_cli_to_core_integration(
-            self, mock_process_asset: mock.MagicMock, test_file: Path
+        self, mock_process_asset: mock.MagicMock, test_file: Path
     ) -> None:
         """Test that CLI correctly interfaces with core processing."""
-        from quacktool.demo_cli import cli  # Import the CLI group, not the function
         from click.testing import CliRunner
+
+        from quacktool.demo_cli import cli  # Import the CLI group, not the function
 
         # Set up the mock return value
         mock_process_asset.return_value = mock.MagicMock(
@@ -177,16 +181,22 @@ class TestCliIntegration:
                     mock_convert.return_value = str(test_file)
 
                     # Run the command using the CLI group with the process command name
-                    result = runner.invoke(cli, [
-                        "process",  # Command name
-                        str(test_file),
-                        "--mode", "transform",
-                        "--quality", "95",
-                    ], obj={
-                        "logger": mock_logger,
-                        "quack_ctx": mock_ctx,
-                        "config": {},
-                    })
+                    result = runner.invoke(
+                        cli,
+                        [
+                            "process",  # Command name
+                            str(test_file),
+                            "--mode",
+                            "transform",
+                            "--quality",
+                            "95",
+                        ],
+                        obj={
+                            "logger": mock_logger,
+                            "quack_ctx": mock_ctx,
+                            "config": {},
+                        },
+                    )
 
         # Check that the command succeeded
         assert result.exit_code == 0

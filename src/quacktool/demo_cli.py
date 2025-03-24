@@ -19,8 +19,9 @@ from quackcore.cli import (
 )
 
 from quacktool.core import process_asset
+from quacktool.llm_metadata import generate_llm_metadata
 from quacktool.models import AssetConfig, AssetType, ProcessingMode, ProcessingOptions
-from quacktool.version import display_version_info, __version__
+from quacktool.version import __version__, display_version_info
 
 # Get enum values for Click choices
 # Use this approach to accommodate both the tests and type checking
@@ -62,7 +63,7 @@ cli = click.Group(name="quacktool")
     version=__version__,
     prog_name="QuackTool",
     callback=display_version_info,
-    message="QuackTool version %(version)s"
+    message="QuackTool version %(version)s",
 )
 @click.pass_context
 def main_command(
@@ -277,8 +278,7 @@ def batch_command(
     for input_file in input_files:
         input_path = Path(input_file)
         output_file = (
-            output_path
-            / f"{input_path.stem}.{format or input_path.suffix.lstrip('.')}"
+            output_path / f"{input_path.stem}.{format or input_path.suffix.lstrip('.')}"
         )
 
         asset_config = AssetConfig(
@@ -304,7 +304,59 @@ def batch_command(
         sys.exit(1)
 
 
-# Add a dedicated version command that calls display_version_info directly
+@cli.command("metadata")
+@click.argument(
+    "input_file",
+    type=click.Path(exists=True, dir_okay=False),
+)
+@click.option(
+    "--json",
+    "json_output",
+    is_flag=True,
+    help="Print raw JSON output instead of formatted view.",
+)
+@click.pass_context
+@handle_errors(exit_code=1)
+def metadata_command(
+    ctx: click.Context,
+    input_file: str,
+    json_output: bool,
+) -> None:
+    """
+    Generate LLM-based metadata for a text document.
+
+    This command analyzes the input file using an LLM to produce metadata
+    including title, summary, keywords, and topics.
+
+    Example:
+
+        quacktool metadata ./docs/my_article.txt
+    """
+    logger = ctx.obj["logger"]
+    input_path = Path(input_file)
+
+    logger.info(f"Generating LLM metadata for {input_path}...")
+
+    asset_config = AssetConfig(input_path=input_path)
+
+    metadata = generate_llm_metadata(asset_config)
+
+    if "error" in metadata:
+        print_error(f"Metadata generation failed: {metadata['error']}", exit_code=1)
+        return
+
+    if json_output:
+        import json
+
+        print(json.dumps(metadata, indent=2))
+    else:
+        print_success(f"Metadata for {input_file}")
+        print_info(f"Title: {metadata.get('title', 'N/A')}")
+        print_info(f"Summary:\n{metadata.get('summary', 'N/A')}")
+        print_info(f"Keywords: {', '.join(metadata.get('keywords', []))}")
+        print_info(f"Topics: {', '.join(metadata.get('topics', []))}")
+
+
 @cli.command("version")
 def version_command():
     """Display version information."""

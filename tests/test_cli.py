@@ -2,6 +2,7 @@
 """
 Tests for QuackTool's CLI functionality.
 """
+
 import logging
 from pathlib import Path
 from unittest import mock
@@ -9,9 +10,7 @@ from unittest import mock
 import pytest
 from click.testing import CliRunner
 
-from quacktool.demo_cli import (
-    cli,  # This is the click.Group we need to use
-)
+from quacktool.demo_cli import cli  # This is the click.Group we need to use
 from quacktool.models import AssetType, ProcessingMode, ProcessingResult
 
 
@@ -34,8 +33,9 @@ def mock_logging_setup():
 class TestQuackToolCli:
     """Tests for the QuackTool CLI commands."""
 
-    def test_main_command(self, cli_runner: CliRunner,
-                          mock_logging_setup: mock.MagicMock) -> None:
+    def test_main_command(
+        self, cli_runner: CliRunner, mock_logging_setup: mock.MagicMock
+    ) -> None:
         """Test the main command."""
         with mock.patch("quackcore.cli.init_cli_env") as mock_init:
             # Create a proper mock context
@@ -64,8 +64,7 @@ class TestQuackToolCli:
 
     @mock.patch("quacktool.demo_cli.process_asset")
     def test_process_command(
-            self, mock_process_asset: mock.MagicMock, cli_runner: CliRunner,
-            test_file: Path
+        self, mock_process_asset: mock.MagicMock, cli_runner: CliRunner, test_file: Path
     ) -> None:
         """Test the process command."""
         # Set up mock to return success
@@ -87,11 +86,15 @@ class TestQuackToolCli:
             # Mock Path.exists to avoid file system checks
             with mock.patch("pathlib.Path.exists", return_value=True):
                 # Run command with minimal arguments - provide obj dictionary for context
-                result = cli_runner.invoke(cli, ["process", str(test_file)], obj={
-                    "logger": mock_logger,
-                    "quack_ctx": mock_ctx,
-                    "config": {},
-                })
+                result = cli_runner.invoke(
+                    cli,
+                    ["process", str(test_file)],
+                    obj={
+                        "logger": mock_logger,
+                        "quack_ctx": mock_ctx,
+                        "config": {},
+                    },
+                )
 
         # Check command succeeded
         assert result.exit_code == 0
@@ -105,21 +108,32 @@ class TestQuackToolCli:
             mock_init.return_value = mock_ctx
 
             with mock.patch("pathlib.Path.exists", return_value=True):
-                result = cli_runner.invoke(cli, [
-                    "process",
-                    str(test_file),
-                    "--output", "output.webp",
-                    "--mode", "transform",
-                    "--quality", "95",
-                    "--format", "webp",
-                    "--width", "800",
-                    "--height", "600",
-                    "--type", "image",
-                ], obj={
-                    "logger": mock_logger,
-                    "quack_ctx": mock_ctx,
-                    "config": {},
-                })
+                result = cli_runner.invoke(
+                    cli,
+                    [
+                        "process",
+                        str(test_file),
+                        "--output",
+                        "output.webp",
+                        "--mode",
+                        "transform",
+                        "--quality",
+                        "95",
+                        "--format",
+                        "webp",
+                        "--width",
+                        "800",
+                        "--height",
+                        "600",
+                        "--type",
+                        "image",
+                    ],
+                    obj={
+                        "logger": mock_logger,
+                        "quack_ctx": mock_ctx,
+                        "config": {},
+                    },
+                )
 
         # Check command succeeded
         assert result.exit_code == 0
@@ -136,8 +150,7 @@ class TestQuackToolCli:
 
     @mock.patch("quacktool.demo_cli.process_asset")
     def test_process_command_failure(
-            self, mock_process_asset: mock.MagicMock, cli_runner: CliRunner,
-            test_file: Path
+        self, mock_process_asset: mock.MagicMock, cli_runner: CliRunner, test_file: Path
     ) -> None:
         """Test the process command handling failures."""
         # Set up mock to return failure
@@ -156,17 +169,22 @@ class TestQuackToolCli:
 
             with mock.patch("pathlib.Path.exists", return_value=True):
                 # Mock print_error to raise SystemExit(1) when called
-                with mock.patch("quacktool.demo_cli.print_error",
-                                side_effect=SystemExit(1)) as mock_print_error:
+                with mock.patch(
+                    "quacktool.demo_cli.print_error", side_effect=SystemExit(1)
+                ) as mock_print_error:
                     # Use the CLI runner with catch_exceptions=False to let the SystemExit propagate
                     with pytest.raises(SystemExit) as excinfo:
                         # We don't need to capture the result since we're checking for the exception
-                        cli_runner.invoke(cli, ["process", str(test_file)],
-                                          obj={
-                                              "logger": mock_logger,
-                                              "quack_ctx": mock_ctx,
-                                              "config": {},
-                                          }, catch_exceptions=False)
+                        cli_runner.invoke(
+                            cli,
+                            ["process", str(test_file)],
+                            obj={
+                                "logger": mock_logger,
+                                "quack_ctx": mock_ctx,
+                                "config": {},
+                            },
+                            catch_exceptions=False,
+                        )
 
                     # Verify the exit code
                     assert excinfo.value.code == 1
@@ -176,8 +194,11 @@ class TestQuackToolCli:
 
     @mock.patch("quacktool.demo_cli.process_asset")
     def test_batch_command(
-            self, mock_process_asset: mock.MagicMock, cli_runner: CliRunner,
-            temp_dir: Path, test_file: Path
+        self,
+        mock_process_asset: mock.MagicMock,
+        cli_runner: CliRunner,
+        temp_dir: Path,
+        test_file: Path,
     ) -> None:
         """Test the batch command."""
         # Set up mock to return success
@@ -207,21 +228,30 @@ class TestQuackToolCli:
                         with mock.patch("click.Path.convert") as mock_convert:
                             # Set up parameters with direct values to avoid lambda with multiple arguments
                             mock_convert.return_value = str(
-                                output_dir)  # Default to output_dir
+                                output_dir
+                            )  # Default to output_dir
 
                             # Run the command with pre-initialized context
-                            result = cli_runner.invoke(cli, [
-                                "batch",
-                                str(test_file),
-                                "--output-dir", str(output_dir),
-                                "--mode", "transform",
-                                "--quality", "95",
-                                "--format", "webp",
-                            ], obj={
-                                "logger": mock_logger,
-                                "quack_ctx": mock_ctx,
-                                "config": {},
-                            })
+                            result = cli_runner.invoke(
+                                cli,
+                                [
+                                    "batch",
+                                    str(test_file),
+                                    "--output-dir",
+                                    str(output_dir),
+                                    "--mode",
+                                    "transform",
+                                    "--quality",
+                                    "95",
+                                    "--format",
+                                    "webp",
+                                ],
+                                obj={
+                                    "logger": mock_logger,
+                                    "quack_ctx": mock_ctx,
+                                    "config": {},
+                                },
+                            )
 
                             # After the invoke, set a different return value for the next check
                             mock_convert.return_value = str(test_file)
@@ -232,8 +262,11 @@ class TestQuackToolCli:
 
     @mock.patch("quacktool.demo_cli.process_asset")
     def test_batch_command_failure(
-            self, mock_process_asset: mock.MagicMock, cli_runner: CliRunner,
-            temp_dir: Path, test_file: Path
+        self,
+        mock_process_asset: mock.MagicMock,
+        cli_runner: CliRunner,
+        temp_dir: Path,
+        test_file: Path,
     ) -> None:
         """Test the batch command handling failures."""
         # Set up mock to return failure
@@ -261,15 +294,20 @@ class TestQuackToolCli:
                         # Use a separate sys.exit mock to verify it's called
                         with mock.patch("sys.exit") as mock_exit:
                             # Run the batch command through the CLI
-                            result = cli_runner.invoke(cli, [
-                                "batch",
-                                str(test_file),
-                                "--output-dir", str(output_dir),
-                            ], obj={
-                                "logger": mock_logger,
-                                "quack_ctx": mock_ctx,
-                                "config": {},
-                            })
+                            result = cli_runner.invoke(
+                                cli,
+                                [
+                                    "batch",
+                                    str(test_file),
+                                    "--output-dir",
+                                    str(output_dir),
+                                ],
+                                obj={
+                                    "logger": mock_logger,
+                                    "quack_ctx": mock_ctx,
+                                    "config": {},
+                                },
+                            )
 
                             # Verify sys.exit was called with code 1
                             mock_exit.assert_called_with(1)
@@ -278,8 +316,9 @@ class TestQuackToolCli:
         assert result.exit_code == 1
 
     @mock.patch("quacktool.demo_cli.display_version_info")
-    def test_version_command(self, mock_display_version: mock.MagicMock,
-                             cli_runner: CliRunner) -> None:
+    def test_version_command(
+        self, mock_display_version: mock.MagicMock, cli_runner: CliRunner
+    ) -> None:
         """Test the version command."""
         # Run command
         result = cli_runner.invoke(cli, ["version"])

@@ -7,6 +7,7 @@ and initialize the LLM environment (e.g., OpenAI credentials).
 """
 
 import os
+
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -26,7 +27,7 @@ class LLMSettings(BaseSettings):
 
     model_config = SettingsConfigDict(
         env_prefix="",  # No prefix needed; uses OPENAI_API_KEY directly
-        extra="ignore"
+        extra="ignore",
     )
 
 

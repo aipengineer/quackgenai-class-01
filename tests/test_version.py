@@ -17,13 +17,15 @@ class TestVersionModule:
         """Test that the version string follows semantic versioning."""
         # Version should match semantic versioning format
         pattern = r"^\d+\.\d+\.\d+$"
-        assert re.match(pattern,
-                        __version__), f"Version '{__version__}' does not match semantic versioning"
+        assert re.match(pattern, __version__), (
+            f"Version '{__version__}' does not match semantic versioning"
+        )
 
     @mock.patch("sys.stdout", new_callable=StringIO)
     @mock.patch("rich.console.Console.print")
-    def test_display_version_info(self, mock_print: mock.MagicMock,
-                                  mock_stdout: StringIO) -> None:
+    def test_display_version_info(
+        self, mock_print: mock.MagicMock, mock_stdout: StringIO
+    ) -> None:
         """Test display_version_info function."""
         # Test without providing value (should not display anything)
         display_version_info(None, None, None)
@@ -35,21 +37,20 @@ class TestVersionModule:
 
         # Version string should be included
         version_calls = [
-            call for call in mock_print.call_args_list
-            if __version__ in str(call)
+            call for call in mock_print.call_args_list if __version__ in str(call)
         ]
         assert len(version_calls) > 0
 
         # Application name should be included
         app_name_calls = [
-            call for call in mock_print.call_args_list
-            if "QuackTool" in str(call)
+            call for call in mock_print.call_args_list if "QuackTool" in str(call)
         ]
         assert len(app_name_calls) > 0
 
     @mock.patch("quacktool.version.Console")
-    def test_display_version_info_with_ctx(self,
-                                           mock_console_class: mock.MagicMock) -> None:
+    def test_display_version_info_with_ctx(
+        self, mock_console_class: mock.MagicMock
+    ) -> None:
         """Test display_version_info with context."""
         # Create mock console
         mock_console = mock.MagicMock()
@@ -60,7 +61,7 @@ class TestVersionModule:
         mock_ctx.exit = mock.MagicMock()
 
         # Mock the quackcore import to avoid import error
-        with mock.patch.dict('sys.modules', {'quackcore': mock.MagicMock()}):
+        with mock.patch.dict("sys.modules", {"quackcore": mock.MagicMock()}):
             # Call function with ctx and value=True
             display_version_info(mock_ctx, None, True)
 
@@ -71,8 +72,9 @@ class TestVersionModule:
         mock_ctx.exit.assert_called_once()
 
     @mock.patch("quacktool.version.Console")
-    def test_display_version_info_error_handling(self,
-                                                 mock_console_class: mock.MagicMock) -> None:
+    def test_display_version_info_error_handling(
+        self, mock_console_class: mock.MagicMock
+    ) -> None:
         """Test error handling in display_version_info."""
         # Make console raise an exception
         mock_console_class.side_effect = RuntimeError("Test error")
@@ -85,7 +87,7 @@ class TestVersionModule:
             # Verify print was called with error message
             expected_calls = [
                 mock.call(f"QuackTool version {__version__}"),
-                mock.call("Error displaying full version info: Test error")
+                mock.call("Error displaying full version info: Test error"),
             ]
             mock_print.assert_has_calls(expected_calls)
 
@@ -101,8 +103,9 @@ class TestVersionModule:
             mock_display.assert_called_once()
 
     @mock.patch("quacktool.version.Console")
-    def test_display_version_info_resilient_parsing(self,
-                                                    mock_console_class: mock.MagicMock) -> None:
+    def test_display_version_info_resilient_parsing(
+        self, mock_console_class: mock.MagicMock
+    ) -> None:
         """Test handling of resilient_parsing flag."""
         # Create mock console
         mock_console = mock.MagicMock()

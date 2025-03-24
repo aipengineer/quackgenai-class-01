@@ -9,7 +9,7 @@ from pathlib import Path
 from unittest import mock
 
 from quacktool.models import ProcessingMode
-from quacktool.plugin import create_plugin, QuackToolPlugin
+from quacktool.plugin import QuackToolPlugin, create_plugin
 
 
 class TestQuackToolPlugin:
@@ -172,12 +172,14 @@ class TestQuackToolPlugin:
         assert options.mode == ProcessingMode.OPTIMIZE
 
         # Test with invalid types
-        options = plugin._create_options({
-            "mode": 123,  # Should default to OPTIMIZE
-            "quality": "invalid",  # Should default to 80
-            "width": "invalid",
-            "height": 600,  # Dimensions should be None since width is invalid
-        })
+        options = plugin._create_options(
+            {
+                "mode": 123,  # Should default to OPTIMIZE
+                "quality": "invalid",  # Should default to 80
+                "width": "invalid",
+                "height": 600,  # Dimensions should be None since width is invalid
+            }
+        )
         assert options.mode == ProcessingMode.OPTIMIZE
         assert options.quality == 80
         assert options.dimensions is None

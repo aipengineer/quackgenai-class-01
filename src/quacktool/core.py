@@ -8,23 +8,36 @@ implementing the asset processing capabilities.
 
 import logging
 import time
+from functools import lru_cache
 from pathlib import Path
+from typing import Dict, Any
 
 from quackcore.fs import service as fs
 from quackcore.paths import resolver
 
-from quacktool.config import get_tool_config
 from quacktool.models import (
     AssetConfig,
     AssetType,
-    ProcessingResult, ProcessingMode,
+    ProcessingMode,
+    ProcessingResult,
 )
-from quacktool.llm_metadata import generate_llm_metadata
 
+# Setup module-level logger
 logger = logging.getLogger(__name__)
 
 
-# Updated process_asset function in core.py to ensure duration_ms is at least 1
+@lru_cache(maxsize=1)
+def _get_tool_config() -> Dict[str, Any]:
+    """
+    Get the tool configuration in a way that avoids circular imports.
+    Cache the result to avoid repeated imports.
+
+    Returns:
+        Dictionary containing tool configuration
+    """
+    from quacktool.config import get_tool_config
+    return get_tool_config()
+
 
 def process_asset(
         asset_config: AssetConfig,
@@ -45,9 +58,7 @@ def process_asset(
     logger.info(f"Processing asset: {asset_config.input_path}")
 
     try:
-        # Validate input path
         if not asset_config.input_path.exists():
-            # Calculate duration and ensure it's at least 1 ms
             duration_ms = max(1, int((time.time() - start_time) * 1000))
             return ProcessingResult(
                 success=False,
@@ -55,24 +66,18 @@ def process_asset(
                 duration_ms=duration_ms,
             )
 
-        # Determine the asset type if not specified
         asset_type = asset_config.asset_type
         if asset_type == AssetType.OTHER:
             asset_type = _detect_asset_type(asset_config.input_path)
 
-        # Generate output path if not provided
         output_path = asset_config.output_path
         if output_path is None:
             output_path = _generate_output_path(
                 asset_config.input_path, asset_config.options.format
             )
 
-        # Process the asset based on type and mode
         result = _process_by_type_and_mode(asset_config, asset_type, output_path)
-
-        # Always update the duration - ensure it's not zero
-        duration_ms = max(1, int((time.time() - start_time) * 1000))
-        result.duration_ms = duration_ms
+        result.duration_ms = max(1, int((time.time() - start_time) * 1000))
 
         if result.success:
             logger.info(
@@ -88,13 +93,13 @@ def process_asset(
 
     except Exception as e:
         logger.exception(f"Error processing asset: {str(e)}")
-        # Calculate duration and ensure it's at least 1 ms
         duration_ms = max(1, int((time.time() - start_time) * 1000))
         return ProcessingResult(
             success=False,
             error=f"Processing error: {str(e)}",
             duration_ms=duration_ms,
         )
+
 
 def _detect_asset_type(file_path: Path) -> AssetType:
     """
@@ -116,7 +121,6 @@ def _detect_asset_type(file_path: Path) -> AssetType:
     if asset_type != AssetType.OTHER:
         return asset_type
 
-    # Fall back to extension detection
     return _detect_by_extension(file_path)
 
 
@@ -130,6 +134,7 @@ def _detect_by_mime_type(file_path: Path) -> AssetType:
     Returns:
         Detected AssetType or AssetType.OTHER if not detected
     """
+
     mime_type = fs.get_mime_type(file_path)
 
     if not mime_type:
@@ -158,8 +163,6 @@ def _detect_by_extension(file_path: Path) -> AssetType:
         Detected AssetType or AssetType.OTHER if not detected
     """
     suffix = file_path.suffix.lower()
-
-    # Define extension sets
     image_extensions = {
         ".jpg",
         ".jpeg",
@@ -174,7 +177,6 @@ def _detect_by_extension(file_path: Path) -> AssetType:
     audio_extensions = {".mp3", ".wav", ".ogg", ".aac", ".flac", ".m4a"}
     document_extensions = {".pdf", ".doc", ".docx", ".txt", ".md", ".html", ".xml"}
 
-    # Check against each set
     if suffix in image_extensions:
         return AssetType.IMAGE
     if suffix in video_extensions:
@@ -185,6 +187,7 @@ def _detect_by_extension(file_path: Path) -> AssetType:
         return AssetType.DOCUMENT
 
     return AssetType.OTHER
+
 
 def _generate_output_path(input_path: Path, file_format: str | None = None) -> Path:
     """
@@ -197,29 +200,20 @@ def _generate_output_path(input_path: Path, file_format: str | None = None) -> P
     Returns:
         Path object for the generated output path
     """
-    # Get the tool configuration for output directory
-    tool_config = get_tool_config()
-
-    # Extract output_dir with fallback, handling both dict and object access
-    # Default to "./output" if there's any issue accessing the config
-    output_dir = "./output"  # Default fallback
+    # Get configuration using the cached function to avoid circular imports
+    tool_config = _get_tool_config()
+    output_dir = "./output"
 
     if isinstance(tool_config, dict):
         output_dir = tool_config.get("output_dir", "./output")
     else:
         output_dir = getattr(tool_config, "output_dir", "./output")
 
-    # Resolve the output directory path
     output_dir_path = resolver.resolve_project_path(output_dir)
-
-    # Create output directory if it doesn't exist
     fs.create_directory(output_dir_path, exist_ok=True)
 
-    # Generate output filename
     stem = input_path.stem
     extension = f".{file_format}" if file_format else input_path.suffix
-
-    # Create a unique filename to avoid overwriting existing files
     output_path = output_dir_path / f"{stem}{extension}"
     counter = 1
 
@@ -228,6 +222,7 @@ def _generate_output_path(input_path: Path, file_format: str | None = None) -> P
         counter += 1
 
     return output_path
+
 
 def _process_by_type_and_mode(
         asset_config: AssetConfig,
@@ -258,7 +253,6 @@ def _process_by_type_and_mode(
     elif asset_type == AssetType.DOCUMENT:
         return _process_document(asset_config, output_path)
     else:
-        # For 'OTHER' type, just copy the file
         return _copy_file(asset_config.input_path, output_path)
 
 
@@ -303,7 +297,6 @@ def _process_video(asset_config: AssetConfig, output_path: Path) -> ProcessingRe
     # library like ffmpeg to process the video
     start_time = time.time()
     result = _copy_file(asset_config.input_path, output_path)
-    # Ensure duration is always set
     result.duration_ms = max(1, int((time.time() - start_time) * 1000))
     return result
 
@@ -331,8 +324,6 @@ def _process_audio(asset_config: AssetConfig, output_path: Path) -> ProcessingRe
     return result
 
 
-
-
 def _process_document(asset_config: AssetConfig, output_path: Path) -> ProcessingResult:
     """
     Process a document asset.
@@ -345,24 +336,21 @@ def _process_document(asset_config: AssetConfig, output_path: Path) -> Processin
         ProcessingResult with the outcome of the processing
     """
     logger.info(f"Processing document {asset_config.input_path} to {output_path}")
-
     start_time = time.time()
 
     try:
         if asset_config.options.mode == ProcessingMode.GENERATE:
-            # LLM-based metadata generation
-            metadata = generate_llm_metadata(asset_config)
+            # Lazy import to avoid circular dependencies
+            from quacktool.llm_metadata import generate_llm_metadata
 
+            metadata = generate_llm_metadata(asset_config)
             return ProcessingResult(
                 success=True,
                 output_path=asset_config.input_path,
-                metrics={
-                    "llm_metadata": metadata
-                },
+                metrics={"llm_metadata": metadata},
                 duration_ms=max(1, int((time.time() - start_time) * 1000)),
             )
 
-        # Fallback for other modes: copy file
         result = _copy_file(asset_config.input_path, output_path)
         result.duration_ms = max(1, int((time.time() - start_time) * 1000))
         return result
@@ -374,7 +362,6 @@ def _process_document(asset_config: AssetConfig, output_path: Path) -> Processin
             error=f"Document processing error: {str(e)}",
             duration_ms=max(1, int((time.time() - start_time) * 1000)),
         )
-
 
 
 def _copy_file(input_path: Path, output_path: Path) -> ProcessingResult:
@@ -389,7 +376,6 @@ def _copy_file(input_path: Path, output_path: Path) -> ProcessingResult:
         ProcessingResult with the outcome of the copy operation
     """
     try:
-        # Get file info before copying
         input_info = fs.get_file_info(input_path)
         if not input_info.success or not input_info.exists:
             return ProcessingResult(
@@ -398,8 +384,6 @@ def _copy_file(input_path: Path, output_path: Path) -> ProcessingResult:
             )
 
         input_size = input_info.size or 0
-
-        # Copy the file
         copy_result = fs.copy(input_path, output_path, overwrite=True)
         if not copy_result.success:
             return ProcessingResult(
@@ -407,11 +391,8 @@ def _copy_file(input_path: Path, output_path: Path) -> ProcessingResult:
                 error=f"Failed to copy file: {copy_result.error}",
             )
 
-        # Get info about the copied file
         output_info = fs.get_file_info(output_path)
         output_size = output_info.size or 0
-
-        # Calculate metrics
         metrics = {
             "input_size": input_size,
             "output_size": output_size,

@@ -12,7 +12,8 @@ from typing import Any
 from unittest import mock
 
 import hypothesis
-from hypothesis import given, strategies as st
+from hypothesis import given
+from hypothesis import strategies as st
 
 from quacktool.core import _detect_by_extension, _generate_output_path, process_asset
 from quacktool.models import (
@@ -41,18 +42,42 @@ def processing_mode_strategy(draw: Any) -> ProcessingMode:
 def valid_file_path_strategy(draw: Any) -> Path:
     """Strategy for generating valid file paths."""
     # Generate a random file extension from common types
-    extension = draw(st.sampled_from([
-        ".jpg", ".png", ".webp", ".mp4", ".mp3", ".pdf", ".txt", ".md",
-        ".doc", ".zip", ".json", ".xml", ".csv", ".html", ".css", ".js",
-    ]))
+    extension = draw(
+        st.sampled_from(
+            [
+                ".jpg",
+                ".png",
+                ".webp",
+                ".mp4",
+                ".mp3",
+                ".pdf",
+                ".txt",
+                ".md",
+                ".doc",
+                ".zip",
+                ".json",
+                ".xml",
+                ".csv",
+                ".html",
+                ".css",
+                ".js",
+            ]
+        )
+    )
 
     # Generate a random file name (1-3 parts, each 1-10 characters)
-    parts = draw(st.lists(
-        st.text(st.characters(
-            whitelist_categories=["Lu", "Ll", "Nd"],
-            whitelist_characters="_-"),
-            min_size=1, max_size=10),
-        min_size=1, max_size=3)
+    parts = draw(
+        st.lists(
+            st.text(
+                st.characters(
+                    whitelist_categories=["Lu", "Ll", "Nd"], whitelist_characters="_-"
+                ),
+                min_size=1,
+                max_size=10,
+            ),
+            min_size=1,
+            max_size=3,
+        )
     )
     filename = "_".join(parts) + extension
 
@@ -61,12 +86,19 @@ def valid_file_path_strategy(draw: Any) -> Path:
 
     # Generate random directory names
     if dir_depth > 0:
-        dirs = draw(st.lists(
-            st.text(st.characters(
-                whitelist_categories=["Lu", "Ll", "Nd"],
-                whitelist_characters="_-"),
-                min_size=1, max_size=10),
-            min_size=dir_depth, max_size=dir_depth)
+        dirs = draw(
+            st.lists(
+                st.text(
+                    st.characters(
+                        whitelist_categories=["Lu", "Ll", "Nd"],
+                        whitelist_characters="_-",
+                    ),
+                    min_size=1,
+                    max_size=10,
+                ),
+                min_size=dir_depth,
+                max_size=dir_depth,
+            )
         )
         path = Path(*dirs) / filename
     else:
@@ -94,20 +126,32 @@ def processing_options_strategy(draw: Any) -> ProcessingOptions:
     format_str = None
     if include_format:
         format_str = draw(
-            st.sampled_from(["jpg", "png", "webp", "mp4", "mp3", "pdf", "txt"]))
+            st.sampled_from(["jpg", "png", "webp", "mp4", "mp3", "pdf", "txt"])
+        )
 
     # Generate random metadata
     metadata_count = draw(st.integers(min_value=0, max_value=5))
     metadata = {}
     for _ in range(metadata_count):
-        key = draw(st.text(st.characters(
-            whitelist_categories=["Lu", "Ll", "Nd"],
-            whitelist_characters="_-"),
-            min_size=1, max_size=10))
-        value = draw(st.text(st.characters(
-            whitelist_categories=["Lu", "Ll", "Nd"],
-            whitelist_characters=" _-:."),
-            min_size=1, max_size=20))
+        key = draw(
+            st.text(
+                st.characters(
+                    whitelist_categories=["Lu", "Ll", "Nd"], whitelist_characters="_-"
+                ),
+                min_size=1,
+                max_size=10,
+            )
+        )
+        value = draw(
+            st.text(
+                st.characters(
+                    whitelist_categories=["Lu", "Ll", "Nd"],
+                    whitelist_characters=" _-:.",
+                ),
+                min_size=1,
+                max_size=20,
+            )
+        )
         metadata[key] = value
 
     return ProcessingOptions(
@@ -137,10 +181,15 @@ def asset_config_strategy(draw: Any) -> AssetConfig:
     tag_count = draw(st.integers(min_value=0, max_value=5))
     tags = []
     for _ in range(tag_count):
-        tag = draw(st.text(st.characters(
-            whitelist_categories=["Lu", "Ll", "Nd"],
-            whitelist_characters="_-"),
-            min_size=1, max_size=10))
+        tag = draw(
+            st.text(
+                st.characters(
+                    whitelist_categories=["Lu", "Ll", "Nd"], whitelist_characters="_-"
+                ),
+                min_size=1,
+                max_size=10,
+            )
+        )
         tags.append(tag)
 
     return AssetConfig(
@@ -155,13 +204,34 @@ def asset_config_strategy(draw: Any) -> AssetConfig:
 class TestPropertyBased:
     """Property-based tests for QuackTool."""
 
-    @given(st.sampled_from([
-        "test.jpg", "test.jpeg", "test.png", "test.gif", "test.webp",
-        "test.mp4", "test.avi", "test.mov", "test.wmv",
-        "test.mp3", "test.wav", "test.ogg", "test.flac",
-        "test.pdf", "test.doc", "test.docx", "test.txt", "test.md",
-        "test.unknown", "test", "test.123", ".hidden",
-    ]))
+    @given(
+        st.sampled_from(
+            [
+                "test.jpg",
+                "test.jpeg",
+                "test.png",
+                "test.gif",
+                "test.webp",
+                "test.mp4",
+                "test.avi",
+                "test.mov",
+                "test.wmv",
+                "test.mp3",
+                "test.wav",
+                "test.ogg",
+                "test.flac",
+                "test.pdf",
+                "test.doc",
+                "test.docx",
+                "test.txt",
+                "test.md",
+                "test.unknown",
+                "test",
+                "test.123",
+                ".hidden",
+            ]
+        )
+    )
     def test_extension_detection_properties(self, filename: str) -> None:
         """Test that extension detection works for all file types."""
         # Convert string to Path
@@ -189,7 +259,9 @@ class TestPropertyBased:
         """Test that ProcessingOptions behaves correctly for all inputs."""
         # Mode must be a valid ProcessingMode
         assert isinstance(options.mode, ProcessingMode)
-        assert options.mode.value in ProcessingMode.get_values()  # Use get_values() instead of values
+        assert (
+            options.mode.value in ProcessingMode.get_values()
+        )  # Use get_values() instead of values
 
         # Quality must be within range
         assert 0 <= options.quality <= 100
@@ -213,9 +285,9 @@ class TestPropertyBased:
     @mock.patch("pathlib.Path.exists")  # Only keep the mock that's actually used
     @given(st.text(min_size=1, max_size=10).map(lambda s: f"test_{s}.txt"))
     def test_output_path_generation_properties(
-            self,
-            filename: str,
-            mock_exists: mock.MagicMock,  # Only one mock parameter now
+        self,
+        filename: str,
+        mock_exists: mock.MagicMock,  # Only one mock parameter now
     ) -> None:
         """Test that output path generation works correctly for all inputs."""
         # Set up mock for path existence check
@@ -233,7 +305,9 @@ class TestPropertyBased:
 
                 # Skip the actual exists() call by controlling the return value
                 with mock.patch("pathlib.Path.exists") as mock_path_exists:
-                    mock_path_exists.return_value = False  # Path doesn't exist, no counter needed
+                    mock_path_exists.return_value = (
+                        False  # Path doesn't exist, no counter needed
+                    )
 
                     # Now test the function
                     output_path = _generate_output_path(input_path)
@@ -251,11 +325,11 @@ class TestPropertyBased:
     # Use sampled_from instead of asset_type_strategy to avoid parameter order issues
     @given(st.sampled_from(list(AssetType)))
     def test_process_asset_type_properties(
-            self,
-            asset_type: AssetType,  # This is now a real AssetType enum value
-            mock_exists: mock.MagicMock,
-            mock_generate_output: mock.MagicMock,
-            mock_process: mock.MagicMock,
+        self,
+        asset_type: AssetType,  # This is now a real AssetType enum value
+        mock_exists: mock.MagicMock,
+        mock_generate_output: mock.MagicMock,
+        mock_process: mock.MagicMock,
     ) -> None:
         """Test that process_asset handles all asset types correctly."""
         # Set up mocks
@@ -288,16 +362,15 @@ class TestPropertyBased:
             args = mock_process.call_args[0]
             assert args[1] == asset_type
 
-
     @mock.patch("quacktool.core.fs.copy")
     @mock.patch("quacktool.core.fs.get_file_info")
     # Use sampled_from instead of processing_mode_strategy to avoid parameter issues
     @given(st.sampled_from(list(ProcessingMode)))
     def test_process_asset_mode_properties(
-            self,
-            mode: ProcessingMode,  # This is now a real ProcessingMode enum value
-            mock_file_info: mock.MagicMock,
-            mock_copy: mock.MagicMock,
+        self,
+        mode: ProcessingMode,  # This is now a real ProcessingMode enum value
+        mock_file_info: mock.MagicMock,
+        mock_copy: mock.MagicMock,
     ) -> None:
         """Test that process_asset handles all processing modes correctly."""
         # Skip test if running in CI or without file system access
@@ -328,7 +401,9 @@ class TestPropertyBased:
                 )
 
                 # Mock additional functions to avoid actual processing
-                with mock.patch("quacktool.core._process_by_type_and_mode") as mock_process:
+                with mock.patch(
+                    "quacktool.core._process_by_type_and_mode"
+                ) as mock_process:
                     mock_process.return_value = ProcessingResult(
                         success=True,
                         output_path=output_path,

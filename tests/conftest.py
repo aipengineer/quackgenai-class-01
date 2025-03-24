@@ -84,6 +84,7 @@ def test_asset_config(test_file: Path) -> AssetConfig:
 @pytest.fixture
 def mock_quackcore_plugin() -> QuackPluginProtocol:
     """Create a mock QuackCore plugin for testing."""
+
     class MockPlugin(QuackPluginProtocol):
         def __init__(self) -> None:
             self._initialized = True
@@ -103,10 +104,10 @@ def mock_quackcore_plugin() -> QuackPluginProtocol:
             return self._initialized
 
         def process_file(
-                self,
-                file_path: str,
-                output_path: str | None = None,
-                options: dict[str, object] | None = None,
+            self,
+            file_path: str,
+            output_path: str | None = None,
+            options: dict[str, object] | None = None,
         ) -> IntegrationResult:
             # Use the output_path if provided
             content = output_path if output_path else "mock_processed_output.txt"

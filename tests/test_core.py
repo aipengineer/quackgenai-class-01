@@ -6,7 +6,6 @@ Tests for QuackTool's core functionality.
 from pathlib import Path
 from unittest import mock
 
-
 from quacktool.core import (
     _detect_asset_type,
     _detect_by_extension,
@@ -71,10 +70,10 @@ class TestAssetTypeDetection:
     @mock.patch("quacktool.core._detect_by_extension")
     @mock.patch("quacktool.core.fs.get_file_info")
     def test_detect_asset_type(
-            self,
-            mock_get_file_info: mock.MagicMock,
-            mock_detect_by_extension: mock.MagicMock,
-            mock_detect_by_mime_type: mock.MagicMock,
+        self,
+        mock_get_file_info: mock.MagicMock,
+        mock_detect_by_extension: mock.MagicMock,
+        mock_detect_by_mime_type: mock.MagicMock,
     ) -> None:
         """Test the overall asset type detection."""
         # Set up mock return values
@@ -101,11 +100,11 @@ class TestOutputPathGeneration:
     @mock.patch("quacktool.core.fs.create_directory")
     @mock.patch("quacktool.core.get_tool_config")
     def test_generate_output_path(
-            self,
-            mock_get_tool_config: mock.MagicMock,
-            mock_create_directory: mock.MagicMock,
-            mock_resolve_project_path: mock.MagicMock,
-            temp_dir: Path,
+        self,
+        mock_get_tool_config: mock.MagicMock,
+        mock_create_directory: mock.MagicMock,
+        mock_resolve_project_path: mock.MagicMock,
+        temp_dir: Path,
     ) -> None:
         """Test generating output paths."""
         # Set up mocks
@@ -136,11 +135,11 @@ class TestProcessAsset:
     @mock.patch("quacktool.core._detect_asset_type")
     @mock.patch("quacktool.core._generate_output_path")
     def test_process_asset_success(
-            self,
-            mock_generate_output_path: mock.MagicMock,
-            mock_detect_asset_type: mock.MagicMock,
-            mock_process_by_type_and_mode: mock.MagicMock,
-            test_file: Path,
+        self,
+        mock_generate_output_path: mock.MagicMock,
+        mock_detect_asset_type: mock.MagicMock,
+        mock_process_by_type_and_mode: mock.MagicMock,
+        test_file: Path,
     ) -> None:
         """Test successful asset processing."""
         # Set up mocks
@@ -191,12 +190,11 @@ class TestProcessAsset:
         assert "not found" in result.error if result.error else ""
         assert result.duration_ms >= 1
 
-
     @mock.patch("quacktool.core._process_by_type_and_mode")
     def test_process_asset_error_handling(
-            self,
-            mock_process_by_type_and_mode: mock.MagicMock,
-            test_file: Path,
+        self,
+        mock_process_by_type_and_mode: mock.MagicMock,
+        test_file: Path,
     ) -> None:
         """Test error handling during processing."""
         # Set up mock for _generate_output_path to avoid config issues
@@ -209,7 +207,8 @@ class TestProcessAsset:
 
                 # Set up mock to raise an exception
                 mock_process_by_type_and_mode.side_effect = RuntimeError(
-                    "Test processing error")
+                    "Test processing error"
+                )
 
                 # Create config and call process_asset
                 config = AssetConfig(input_path=test_file)
@@ -220,16 +219,17 @@ class TestProcessAsset:
                 assert "Test processing error" in result.error if result.error else ""
                 assert result.duration_ms >= 1
 
+
 class TestProcessByTypeAndMode:
     """Tests for the process by type and mode functions."""
 
     @mock.patch("quacktool.core.fs.create_directory")
     @mock.patch("quacktool.core._process_image")
     def test_process_image(
-            self,
-            mock_process_image: mock.MagicMock,
-            mock_create_directory: mock.MagicMock,
-            test_file: Path,
+        self,
+        mock_process_image: mock.MagicMock,
+        mock_create_directory: mock.MagicMock,
+        test_file: Path,
     ) -> None:
         """Test processing for image assets."""
         # Set up mock
@@ -253,10 +253,10 @@ class TestProcessByTypeAndMode:
     @mock.patch("quacktool.core.fs.create_directory")
     @mock.patch("quacktool.core._process_video")
     def test_process_video(
-            self,
-            mock_process_video: mock.MagicMock,
-            mock_create_directory: mock.MagicMock,
-            test_file: Path,
+        self,
+        mock_process_video: mock.MagicMock,
+        mock_create_directory: mock.MagicMock,
+        test_file: Path,
     ) -> None:
         """Test processing for video assets."""
         # Set up mock
@@ -280,10 +280,10 @@ class TestProcessByTypeAndMode:
     @mock.patch("quacktool.core.fs.create_directory")
     @mock.patch("quacktool.core._copy_file")
     def test_process_other(
-            self,
-            mock_copy_file: mock.MagicMock,
-            mock_create_directory: mock.MagicMock,
-            test_file: Path,
+        self,
+        mock_copy_file: mock.MagicMock,
+        mock_create_directory: mock.MagicMock,
+        test_file: Path,
     ) -> None:
         """Test processing for other asset types."""
         # Set up mock
