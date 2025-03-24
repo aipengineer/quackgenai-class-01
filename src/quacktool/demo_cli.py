@@ -314,28 +314,6 @@ def batch_command(
     is_flag=True,
     help="Print raw JSON output instead of formatted view.",
 )
-@cli.command("metadata")
-@click.argument(
-    "input_file",
-    type=click.Path(exists=True, dir_okay=False),
-)
-@click.option(
-    "--json",
-    "json_output",
-    is_flag=True,
-    help="Print raw JSON output instead of formatted view.",
-)
-@cli.command("metadata")
-@click.argument(
-    "input_file",
-    type=click.Path(exists=True, dir_okay=False),
-)
-@click.option(
-    "--json",
-    "json_output",
-    is_flag=True,
-    help="Print raw JSON output instead of formatted view.",
-)
 @click.pass_context
 def metadata_command(
         ctx: click.Context,
@@ -391,6 +369,7 @@ def metadata_command(
             logger.exception(f"Error in metadata_command: {e}")
         print_error(f"Error in metadata_command: {e}", exit_code=1)
         traceback.print_exc()
+
 
 @cli.command("version")
 def version_command():
