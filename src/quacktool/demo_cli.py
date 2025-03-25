@@ -19,6 +19,7 @@ from quackcore.cli import (
 )
 
 from quacktool.core import process_asset
+from quacktool.llm.cli_commands import register_llm_commands
 from quacktool.models import AssetConfig, AssetType, ProcessingMode, ProcessingOptions
 from quacktool.version import __version__, display_version_info
 
@@ -303,74 +304,6 @@ def batch_command(
         sys.exit(1)
 
 
-@cli.command("metadata")
-@click.argument(
-    "input_file",
-    type=click.Path(exists=True, dir_okay=False),
-)
-@click.option(
-    "--json",
-    "json_output",
-    is_flag=True,
-    help="Print raw JSON output instead of formatted view.",
-)
-@click.pass_context
-def metadata_command(
-        ctx: click.Context,
-        input_file: str,
-        json_output: bool,
-) -> None:
-    """
-    Generate LLM-based metadata for a text document.
-
-    This command analyzes the input file using an LLM to produce metadata
-    including title, summary, keywords, and topics.
-
-    Example:
-
-        quacktool metadata ./docs/my_article.txt
-    """
-    try:
-        from quacktool.llm_metadata import generate_llm_metadata
-        from quacktool.models import AssetConfig
-        from pathlib import Path
-
-        # Use the logger from the context
-        logger = ctx.obj.get("logger")
-        if logger:
-            logger.info(f"Generating LLM metadata for {input_file}")
-
-        input_path = Path(input_file)
-
-        print_info(f"Generating LLM metadata for {input_path}...")
-
-        asset_config = AssetConfig(input_path=input_path)
-
-        metadata = generate_llm_metadata(asset_config)
-
-        if "error" in metadata:
-            print_error(f"Metadata generation failed: {metadata['error']}", exit_code=1)
-            return
-
-        if json_output:
-            import json
-            print(json.dumps(metadata, indent=2))
-        else:
-            print_success(f"Metadata for {input_file}")
-            print_info(f"Title: {metadata.get('title', 'N/A')}")
-            print_info(f"Summary:\n{metadata.get('summary', 'N/A')}")
-            print_info(f"Keywords: {', '.join(metadata.get('keywords', []))}")
-            print_info(f"Topics: {', '.join(metadata.get('topics', []))}")
-
-    except Exception as e:
-        import traceback
-        logger = ctx.obj.get("logger")
-        if logger:
-            logger.exception(f"Error in metadata_command: {e}")
-        print_error(f"Error in metadata_command: {e}", exit_code=1)
-        traceback.print_exc()
-
-
 @cli.command("version")
 def version_command():
     """Display version information."""
@@ -378,6 +311,8 @@ def version_command():
     # This ensures the mock can track the call
     return display_version_info(None, None, True)
 
+# Register LLM commands with the CLI
+register_llm_commands(cli)
 
 def main() -> None:
     """

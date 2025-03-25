@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from quacktool.llm_metadata import generate_llm_metadata
+from quacktool.llm.metadata import generate_llm_metadata
 from quacktool.models import AssetConfig, AssetType, ProcessingMode, ProcessingOptions
 
 

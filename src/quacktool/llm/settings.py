@@ -1,4 +1,4 @@
-# src/quacktool/llm_settings.py
+# src/quacktool/llm/settings.py
 """
 LLM settings and environment configuration.
 

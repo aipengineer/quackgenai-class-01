@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# examples/process_text.py
 """
 Direct text processing script that doesn't rely on the plugin system.
 This can be used to quickly test LLM functionality.
@@ -17,7 +17,7 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Now we can import from quacktool
-from quacktool.llm_metadata import generate_llm_metadata
+from quacktool.llm.metadata import generate_llm_metadata
 from quacktool.models import AssetConfig
 
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# examples/content_analyzer.py
 """
 Advanced content analysis tool for text documents.
 
@@ -32,7 +32,7 @@ sys.path.insert(0, src_dir)
 
 try:
     # Import the necessary modules
-    from quacktool.llm_settings import setup_llm_environment
+    from quacktool.llm.settings import setup_llm_environment
     import openai
     from openai import OpenAIError
 except ImportError as e:

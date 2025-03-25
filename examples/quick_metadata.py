@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# examples/quick_metadata.py
 """
 A standalone script to quickly test LLM metadata functionality without using the plugin system.
 
@@ -24,7 +24,7 @@ sys.path.insert(0, src_dir)
 
 try:
     # Import the necessary modules
-    from quacktool.llm_settings import setup_llm_environment
+    from quacktool.llm.settings import setup_llm_environment
     from quacktool.models import AssetConfig
     import openai
     from openai import OpenAIError

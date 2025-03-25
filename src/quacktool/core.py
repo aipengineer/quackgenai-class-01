@@ -341,7 +341,7 @@ def _process_document(asset_config: AssetConfig, output_path: Path) -> Processin
     try:
         if asset_config.options.mode == ProcessingMode.GENERATE:
             # Lazy import to avoid circular dependencies
-            from quacktool.llm_metadata import generate_llm_metadata
+            from quacktool.llm.metadata import generate_llm_metadata
 
             metadata = generate_llm_metadata(asset_config)
             return ProcessingResult(

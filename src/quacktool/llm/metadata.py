@@ -1,4 +1,4 @@
-# src/quacktool/llm_metadata.py
+# src/quacktool/llm/metadata.py
 """
 LLM-based metadata generation for text documents.
 
@@ -13,7 +13,7 @@ from typing import Any
 import openai
 from openai import OpenAIError
 
-from quacktool.llm_settings import setup_llm_environment
+from quacktool.llm.settings import setup_llm_environment
 from quacktool.models import AssetConfig
 
 # Choose model — you can switch to "gpt-4" if needed

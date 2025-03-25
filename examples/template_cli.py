@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# examples/template_cli.py
 """
 Command-line interface for working with prompt templates.
 
@@ -25,7 +25,7 @@ try:
     # Import the necessary modules
     from quacktool.prompt_templates import PromptTemplate, TemplateManager, \
         initialize_default_templates
-    from quacktool.llm_settings import setup_llm_environment
+    from quacktool.llm.settings import setup_llm_environment
     import openai
     from openai import OpenAIError
 except ImportError as e:

@@ -1,4 +1,4 @@
-# src/quacktool/llm_analyzer.py
+# src/quacktool/llm/analyzer.py
 """
 Specialized LLM-based content analysis tools.
 
@@ -14,7 +14,7 @@ import openai
 from openai import OpenAIError
 from pydantic import BaseModel, Field
 
-from quacktool.llm_settings import setup_llm_environment
+from quacktool.llm.settings import setup_llm_environment
 from quacktool.models import AssetConfig
 
 
